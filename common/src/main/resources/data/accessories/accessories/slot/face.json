@@ -1,6 +1,6 @@
 {
   "replace": false,
-  "amount": 1,
+  "amount": 0,
   "operation": "set",
   "order": 900,
   "icon": "accessories:gui/slot/face",

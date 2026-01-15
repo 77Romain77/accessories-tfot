@@ -13,11 +13,15 @@ import com.mojang.brigadier.exceptions.SimpleCommandExceptionType;
 import com.mojang.logging.LogUtils;
 import io.wispforest.accessories.Accessories;
 import io.wispforest.accessories.AccessoriesInternals;
+import io.wispforest.accessories.api.AccessoriesAPI;
+import io.wispforest.accessories.api.AccessoriesCapability;
+import io.wispforest.accessories.api.AccessoriesContainer;
 import io.wispforest.accessories.api.components.AccessoriesDataComponents;
 import io.wispforest.accessories.api.components.AccessoryItemAttributeModifiers;
 import io.wispforest.accessories.api.components.AccessorySlotValidationComponent;
 import io.wispforest.accessories.api.components.AccessoryStackSizeComponent;
 import io.wispforest.accessories.api.slot.SlotGroup;
+import io.wispforest.accessories.api.slot.SlotReference;
 import io.wispforest.accessories.data.EntitySlotLoader;
 import io.wispforest.accessories.data.SlotGroupLoader;
 import io.wispforest.accessories.data.SlotTypeLoader;
@@ -28,6 +32,7 @@ import net.minecraft.commands.Commands;
 import net.minecraft.commands.arguments.EntityArgument;
 import net.minecraft.commands.arguments.ResourceArgument;
 import net.minecraft.commands.arguments.ResourceLocationArgument;
+import net.minecraft.commands.arguments.item.ItemArgument;
 import net.minecraft.core.Holder;
 import net.minecraft.core.registries.Registries;
 import net.minecraft.network.chat.Component;
@@ -35,6 +40,7 @@ import net.minecraft.resources.ResourceLocation;
 import net.minecraft.world.entity.LivingEntity;
 import net.minecraft.world.entity.ai.attributes.Attribute;
 import net.minecraft.world.entity.ai.attributes.AttributeModifier;
+import net.minecraft.world.item.ItemStack;
 import org.apache.commons.lang3.mutable.MutableBoolean;
 import org.slf4j.Logger;
 
@@ -46,6 +52,8 @@ public class AccessoriesCommands {
     public static final SimpleCommandExceptionType NON_LIVING_ENTITY_TARGET = new SimpleCommandExceptionType(Component.translatable("argument.livingEntities.nonLiving"));
 
     public static final SimpleCommandExceptionType INVALID_SLOT_TYPE = new SimpleCommandExceptionType(new LiteralMessage("Invalid Slot Type"));
+
+    public static final SimpleCommandExceptionType INVALID_SLOT_ITEM = new SimpleCommandExceptionType(new LiteralMessage("Item is not valid for this slot"));
 
     public static final Logger LOGGER = LogUtils.getLogger();
 
@@ -89,6 +97,42 @@ public class AccessoriesCommands {
                         )
                         .then(
                                 Commands.literal("slot")
+                                        .then(Commands.literal("item")
+                                                .then(Commands.literal("set")
+                                                        .then(Commands.argument("entity", EntityArgument.entity())
+                                                                .then(Commands.argument("slot", SlotArgumentType.INSTANCE)
+                                                                        .then(Commands.argument("index", IntegerArgumentType.integer(0))
+                                                                                .then(Commands.argument("item", ItemArgument.item(context))
+                                                                                        .executes(ctx -> setSlotItem(ctx, 1, false))
+                                                                                        .then(                                                                                                                                                Commands.argument("count", IntegerArgumentType.integer(1))
+                                                                                                .executes(ctx -> setSlotItem(ctx, IntegerArgumentType.getInteger(ctx, "count"), false))
+                                                                                                .then(
+                                                                                                        Commands.argument("cosmetic", BoolArgumentType.bool())
+                                                                                                                .executes(ctx -> setSlotItem(ctx, IntegerArgumentType.getInteger(ctx, "count"), BoolArgumentType.getBool(ctx, "cosmetic")))
+                                                                                                )
+                                                                                        )
+                                                                                        .then(
+                                                                                                Commands.argument("cosmetic", BoolArgumentType.bool())
+                                                                                                        .executes(ctx -> setSlotItem(ctx, 1, BoolArgumentType.getBool(ctx, "cosmetic")))
+                                                                                        )
+                                                                                )
+                                                                        )
+                                                                )
+                                                        )
+                                                )
+                                                .then(Commands.literal("clear")
+                                                        .then(Commands.argument("entity", EntityArgument.entity())
+                                                                .then(Commands.argument("slot", SlotArgumentType.INSTANCE)
+                                                                        .then(Commands.argument("index", IntegerArgumentType.integer(0))
+                                                                                .executes(ctx -> clearSlotItem(ctx, false))
+                                                                                .then(Commands.argument("cosmetic", BoolArgumentType.bool())
+                                                                                        .executes(ctx -> clearSlotItem(ctx, BoolArgumentType.getBool(ctx, "cosmetic")))
+                                                                                )
+                                                                        )
+                                                                )
+                                                        )
+                                                )
+                                        )
                                         .then(
                                                 Commands.literal("add")
                                                         .then(
@@ -162,9 +206,9 @@ public class AccessoriesCommands {
                                                                                         .then(
                                                                                                 Commands.argument("id", ResourceLocationArgument.id())
                                                                                                         .then(Commands.argument("value", DoubleArgumentType.doubleArg())
-                                                                                                                        .then(createAddLiteral("addition"))
-                                                                                                                        .then(createAddLiteral("multiply_base"))
-                                                                                                                        .then(createAddLiteral("multiply_total"))
+                                                                                                                .then(createAddLiteral("addition"))
+                                                                                                                .then(createAddLiteral("multiply_base"))
+                                                                                                                .then(createAddLiteral("multiply_total"))
                                                                                                         )
                                                                                         )
                                                                         )
@@ -259,6 +303,7 @@ public class AccessoriesCommands {
         );
     }
 
+
     private static LiteralArgumentBuilder<CommandSourceStack> createAddLiteral(String literal) {
         var selectedValue = Arrays.stream(AttributeModifier.Operation.values())
                 .filter(value -> value.name().toLowerCase(Locale.ROOT).equals(literal))
@@ -288,6 +333,80 @@ public class AccessoriesCommands {
                 );
     }
 
+    private static AccessoriesContainer getContainerOrThrow(LivingEntity livingEntity, String slotName) throws CommandSyntaxException {
+        var capability = AccessoriesCapability.get(livingEntity);
+
+        if (capability == null)
+            throw INVALID_SLOT_TYPE.create();
+
+        var container = capability.getContainers().get(slotName);
+
+        if (container == null)
+            throw INVALID_SLOT_TYPE.create();
+
+        return container;
+    }
+
+    private static int setSlotItem(CommandContext<CommandSourceStack> ctx, int count, boolean cosmetic) throws CommandSyntaxException {
+        var livingEntity = getOrThrowLivingEntity(ctx);
+        var slotName = SlotArgumentType.getSlot(ctx, "slot");
+        var index = IntegerArgumentType.getInteger(ctx, "index");
+        var itemInput = ItemArgument.getItem(ctx, "item");
+
+        var container = getContainerOrThrow(livingEntity, slotName);
+        var size = container.getSize();
+
+        if (index >= size)
+            throw INVALID_SLOT_INDEX.create(slotName, index, size);
+
+        var stack = itemInput.createItemStack(count, false);
+
+        var maxStackSize = stack.getMaxStackSize();
+        if (count > maxStackSize)
+            stack.setCount(maxStackSize);
+
+        var reference = SlotReference.of(livingEntity, slotName, index);
+
+        if (!AccessoriesAPI.canInsertIntoSlot(stack, reference))
+            throw INVALID_SLOT_ITEM.create();
+
+        var targetContainer = cosmetic ? container.getCosmeticAccessories() : container.getAccessories();
+
+        targetContainer.setItem(index, stack);
+        container.markChanged(false);
+
+        ctx.getSource().sendSuccess(
+                () -> Component.literal("Set " + stack.getCount() + "x "  + stack.getDisplayName().getString() + " in " + slotName  + "[" + index + "]"),
+                false
+        );
+
+        return 1;
+    }
+
+    private static int clearSlotItem(CommandContext<CommandSourceStack> ctx, boolean cosmetic) throws CommandSyntaxException {
+        var livingEntity = getOrThrowLivingEntity(ctx);
+        var slotName = SlotArgumentType.getSlot(ctx, "slot");
+        var index = IntegerArgumentType.getInteger(ctx, "index");
+
+        var container = getContainerOrThrow(livingEntity, slotName);
+        var size = container.getSize();
+
+        if (index >= size)
+            throw INVALID_SLOT_INDEX.create(slotName, index, size);
+
+        var targetContainer = cosmetic ? container.getCosmeticAccessories() : container.getAccessories();
+
+        targetContainer.setItem(index, ItemStack.EMPTY);
+        container.markChanged(false);
+
+        ctx.getSource().sendSuccess(
+                () -> Component.literal("Cleared slot " + slotName + "[" + index + "]"),
+                false
+        );
+
+        return 1;
+    }
+
     private static int getAttributeModifier(CommandSourceStack commandSourceStack, LivingEntity livingEntity, Holder<Attribute> holder, ResourceLocation resourceLocation, double d) throws CommandSyntaxException {
         var stack = livingEntity.getMainHandItem();
 
@@ -313,6 +432,10 @@ public class AccessoriesCommands {
 
     private static final Dynamic3CommandExceptionType ERROR_MODIFIER_ALREADY_PRESENT = new Dynamic3CommandExceptionType(
             (var1, var2, var3) -> Component.translatable("commands.attribute.failed.modifier_already_present_itemstack", var1, var2, var3)
+    );
+
+    public static final Dynamic3CommandExceptionType INVALID_SLOT_INDEX = new Dynamic3CommandExceptionType(
+            (slot, index, size) -> Component.literal("Invalid slot index " + index + " for " + slot + " (size " + size + ")")
     );
 
     private static int addModifier(CommandSourceStack commandSourceStack, LivingEntity livingEntity, Holder<Attribute> holder, ResourceLocation resourceLocation, double d, AttributeModifier.Operation operation, String slotName, boolean isStackable) throws CommandSyntaxException {

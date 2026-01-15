@@ -69,6 +69,10 @@ public final class AccessoriesMenu extends AbstractContainerMenu {
 
     @Nullable
     private Set<SlotType> usedSlots = null;
+    
+    // Variables to manage visibility of cosmetic slot and interactions with the 2 slots
+    private static final boolean ACCESSORIES_INTERACTION_ENABLED = false;
+    private static final boolean ACCESSORIES_COSMETIC_SHOW = false;
 
     public AccessoriesMenu(int containerId, Inventory inventory, @Nullable LivingEntity targetEntity) {
         super(Accessories.ACCESSORIES_MENU_TYPE, containerId);
@@ -167,8 +171,8 @@ public final class AccessoriesMenu extends AbstractContainerMenu {
                 int currentX = minX;
 
                 var cosmeticSlot = new AccessoriesInternalSlot(yIndex, accessoryContainer, true, i, currentX, currentY)
-                                .isActive((slot1) -> this.isCosmeticsOpen() && this.slotToView.getOrDefault(slot1.index, true))
-                                .isAccessible(slot1 -> slot1.isCosmetic && isCosmeticsOpen());
+                                .isActive((slot1) -> ACCESSORIES_COSMETIC_SHOW && this.isCosmeticsOpen() && this.slotToView.getOrDefault(slot1.index, true))
+                                .isAccessible(slot1 -> ACCESSORIES_INTERACTION_ENABLED && slot1.isCosmetic && isCosmeticsOpen());
 
                 cosmeticSlots.add(cosmeticSlot);
 
@@ -177,7 +181,8 @@ public final class AccessoriesMenu extends AbstractContainerMenu {
                 currentX += 18 + 2;
 
                 var baseSlot = new AccessoriesInternalSlot(yIndex, accessoryContainer, false, i, currentX, currentY)
-                                .isActive(slot1 -> this.slotToView.getOrDefault(slot1.index, true));
+                        .isActive(slot1 -> this.slotToView.getOrDefault(slot1.index, true))
+                        .isAccessible(slot1 -> ACCESSORIES_INTERACTION_ENABLED);
 
                 accessoriesSlots.add(baseSlot);
 
@@ -305,6 +310,10 @@ public final class AccessoriesMenu extends AbstractContainerMenu {
 
     @Override
     public ItemStack quickMoveStack(Player player, int clickedIndex) {
+
+        if (!ACCESSORIES_INTERACTION_ENABLED && clickedIndex >= this.accessoriesSlotStartIndex)
+            return ItemStack.EMPTY;
+
         final var slots = this.slots;
         final var clickedSlot = slots.get(clickedIndex);
         if (!clickedSlot.hasItem()) return ItemStack.EMPTY;
