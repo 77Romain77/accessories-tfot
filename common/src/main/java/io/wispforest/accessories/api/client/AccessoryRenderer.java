@@ -220,6 +220,21 @@ public interface AccessoryRenderer {
         poseStack.mulPose(Axis.XP.rotationDegrees(180));
     }
 
+    static void transformToHatPart(PoseStack poseStack, ModelPart part, @Nullable Number xPercent, @Nullable Number yPercent, @Nullable Number zPercent) {
+        part.translateAndRotate(poseStack);
+        var aabb = getAABB(part);
+        poseStack.scale(1 / 16f, 1 / 16f, 1 / 16f);
+        poseStack.translate(
+                xPercent != null ? Mth.lerp((-xPercent.doubleValue() + 1) / 2, aabb.getFirst().x, aabb.getSecond().x) : 0,
+                yPercent != null ? Mth.lerp((-yPercent.doubleValue() + 1) / 2, aabb.getFirst().y, aabb.getSecond().y) : 0,
+                zPercent != null ? Mth.lerp((-zPercent.doubleValue() + 1) / 2, aabb.getFirst().z, aabb.getSecond().z) : 0
+        );
+        float scalingValue = 10F;
+        poseStack.scale(scalingValue, scalingValue, scalingValue);
+        poseStack.mulPose(Axis.ZP.rotationDegrees(180));
+        //poseStack.mulPose(Axis.YP.rotationDegrees(180));
+    }
+
     private static Pair<Vec3, Vec3> getAABB(ModelPart part) {
         Vec3 min = new Vec3(0, 0, 0);
         Vec3 max = new Vec3(0, 0, 0);

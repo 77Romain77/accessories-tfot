@@ -62,7 +62,8 @@ public class DefaultAccessoryRenderer implements AccessoryRenderer {
             if(reference.slotName().equals(target.slotType) && target.targetType.isValid(stack.getItem())) return;
         }
 
-        Consumer<PoseStack> render = (poseStack) -> Minecraft.getInstance().getItemRenderer().renderStatic(stack, ItemDisplayContext.FIXED, light, OverlayTexture.NO_OVERLAY, poseStack, multiBufferSource, reference.entity().level(), 0);
+        var displayContext = reference.slotName().equals("hat") ? ItemDisplayContext.HEAD : ItemDisplayContext.FIXED;
+        Consumer<PoseStack> render = (poseStack) -> Minecraft.getInstance().getItemRenderer().renderStatic(stack, displayContext, light, OverlayTexture.NO_OVERLAY, poseStack, multiBufferSource, reference.entity().level(), 0);
 
         var helper = slotToHelpers.get(reference.slotName());
 
@@ -96,12 +97,16 @@ public class DefaultAccessoryRenderer implements AccessoryRenderer {
                 Map.entry("hat", new RenderHelper() {
                     @Override
                     public <M extends LivingEntity> void render(Consumer<PoseStack> renderCall, PoseStack matrices, HumanoidModel<M> humanoidModel, SlotReference reference) {
-                        AccessoryRenderer.transformToFace(matrices, humanoidModel.head, Side.TOP);
+                        AccessoryRenderer.transformToHatPart(matrices, humanoidModel.hat, 0, 0, 0);
+                        // y 0.1
+                        renderCall.accept(matrices);
+
+                        /*AccessoryRenderer.transformToFace(matrices, humanoidModel.head, Side.TOP);
                         matrices.translate(0, 0.25, 0);
                         for (int i = 0; i < reference.getStack().getCount(); i++) {
                             renderCall.accept(matrices);
                             matrices.translate(0, 0.5, 0);
-                        }
+                        }*/
                     }
                 }),
                 Map.entry("back", new RenderHelper() {
