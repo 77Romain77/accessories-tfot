@@ -475,15 +475,18 @@ public class AccessoriesEventHandler {
             validSlotTypes.addAll(validUniqueSlots);
         }
 
-        var slotTranslationKey = "slot.tooltip." + ((validSlotTypes.size() > 1 && !allSlots) ? "plural" : "singular");
+        // Only show "Slot: Hat" if showUnusedSlots is set to true
+        if (Accessories.getConfig().clientData.showUnusedSlots) {
+            var slotTranslationKey = "slot.tooltip." + ((validSlotTypes.size() > 1 && !allSlots) ? "plural" : "singular");
 
-        slotInfoComponent.append(
-                Component.translatable(Accessories.translation(slotTranslationKey))
-                        .withStyle(ChatFormatting.GRAY)
-                        .append(slotsComponent.withStyle(ChatFormatting.BLUE))
-        );
+            slotInfoComponent.append(
+                    Component.translatable(Accessories.translation(slotTranslationKey))
+                            .withStyle(ChatFormatting.GRAY)
+                            .append(slotsComponent.withStyle(ChatFormatting.BLUE))
+            );
 
-        tooltip.add(slotInfoComponent);
+            tooltip.add(slotInfoComponent);
+        }
 
         var slotSpecificModifiers = new HashMap<SlotType, AccessoryAttributeBuilder>();
         AccessoryAttributeBuilder defaultModifiers = null;

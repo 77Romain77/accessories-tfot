@@ -47,6 +47,7 @@ public class AccessoriesAPI {
     /**
      * @deprecated Internal API, will become private in the future.
      */
+    @Deprecated
     @ApiStatus.Internal
     public static final Accessory DEFAULT = new Accessory() {
         @Override

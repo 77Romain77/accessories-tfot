@@ -7,8 +7,6 @@ import io.wispforest.accessories.client.AccessoriesRenderLayer;
 import io.wispforest.accessories.compat.AccessoriesConfig;
 import io.wispforest.accessories.impl.AccessoriesEventHandler;
 import me.shedaniel.autoconfig.AutoConfig;
-import net.minecraft.client.KeyMapping;
-import net.minecraft.client.Minecraft;
 import net.minecraft.client.model.HumanoidModel;
 import net.minecraft.client.renderer.ShaderInstance;
 import net.minecraft.network.chat.Component;
@@ -18,14 +16,12 @@ import net.minecraftforge.api.distmarker.Dist;
 import net.minecraftforge.client.ConfigScreenHandler;
 import net.minecraftforge.client.event.*;
 import net.minecraftforge.common.MinecraftForge;
-import net.minecraftforge.event.TickEvent;
 import net.minecraftforge.event.entity.player.ItemTooltipEvent;
 import net.minecraftforge.eventbus.api.SubscribeEvent;
 import net.minecraftforge.fml.ModLoadingContext;
 import net.minecraftforge.fml.common.Mod;
 import net.minecraftforge.fml.event.lifecycle.FMLClientSetupEvent;
 import net.minecraftforge.registries.ForgeRegistries;
-import org.lwjgl.glfw.GLFW;
 
 import java.io.IOException;
 import java.util.ArrayList;
@@ -35,13 +31,13 @@ import static io.wispforest.accessories.Accessories.MODID;
 @Mod.EventBusSubscriber(modid = MODID, value = Dist.CLIENT, bus = Mod.EventBusSubscriber.Bus.MOD)
 public class AccessoriesClientForge {
 
-    public static KeyMapping OPEN_SCREEN;
+    //public static KeyMapping OPEN_SCREEN;
 
     @SubscribeEvent
     public static void onInitializeClient(FMLClientSetupEvent event) {
         AccessoriesClient.init();
 
-        MinecraftForge.EVENT_BUS.addListener(AccessoriesClientForge::clientTick);
+        //MinecraftForge.EVENT_BUS.addListener(AccessoriesClientForge::clientTick);
         MinecraftForge.EVENT_BUS.addListener(AccessoriesClientForge::itemTooltipCallback);
         MinecraftForge.EVENT_BUS.addListener(AccessoriesClientForge::onJoin);
 
@@ -54,9 +50,9 @@ public class AccessoriesClientForge {
         AccessoriesClient.handleConfigChangesSync(Accessories.getConfig());
     }
 
-    @SubscribeEvent
+    /*@SubscribeEvent
     public static void initKeybindings(RegisterKeyMappingsEvent event) {
-        OPEN_SCREEN = new KeyMapping(MODID + ".key.open_accessories_screen", GLFW.GLFW_KEY_H, MODID + ".key.category.accessories");
+        OPEN_SCREEN = new KeyMapping(MODID + ".key.open_accessories_screen", GLFW.GLFW_KEY_M, MODID + ".key.category.accessories");
 
         event.register(OPEN_SCREEN);
     }
@@ -67,7 +63,7 @@ public class AccessoriesClientForge {
         if (OPEN_SCREEN.consumeClick()) {
             AccessoriesClient.attemptToOpenScreen(Minecraft.getInstance().player.isShiftKeyDown());
         }
-    }
+    }*/
 
     public static void itemTooltipCallback(ItemTooltipEvent event) {
         var player = event.getEntity();
