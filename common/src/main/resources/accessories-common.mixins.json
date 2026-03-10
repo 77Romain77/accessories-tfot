@@ -9,6 +9,7 @@
     "client.CreativeInventoryScreenMixin",
     "client.DefaultTooltipPositionerMixin",
     "client.GuiGraphicsAccessor",
+    "client.HumanoidArmorLayerMixin",
     "client.InventoryScreenMixin",
     "client.LoadingOverlayMixin",
     "client.MinecraftMixin",
