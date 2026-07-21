@@ -24,6 +24,26 @@ public abstract class InventoryMixin {
 
     @Shadow @Final public Player player;
 
+    /**
+     * {@link Container#hasAnyMatching(Predicate)} is a default interface method.
+     *
+     * <p>Mixin 0.8.5 cannot inject into interface methods, which is the version
+     * used by the OneWorld/Mohist server. Adding this concrete implementation to
+     * {@link Inventory} overrides the default method instead, while preserving
+     * the vanilla inventory search and extending it to equipped accessories.</p>
+     */
+    public boolean hasAnyMatching(Predicate<ItemStack> predicate) {
+        var inventory = (Container) (Object) this;
+
+        for (int slot = 0; slot < inventory.getContainerSize(); slot++) {
+            if (predicate.test(inventory.getItem(slot))) return true;
+        }
+
+        var capability = AccessoriesCapability.get(player);
+
+        return capability != null && capability.isEquipped(predicate);
+    }
+
     @Inject(method = "clearOrCountMatchingItems", at = @At(value = "INVOKE", target = "Lnet/minecraft/world/item/ItemStack;isEmpty()Z", shift = At.Shift.AFTER))
     private void clearAccessories(Predicate<ItemStack> stackPredicate, int maxCount, Container inventory, CallbackInfoReturnable<Integer> cir, @Local(ordinal = 1) LocalIntRef i) {
         var capability = AccessoriesCapability.get(player);
