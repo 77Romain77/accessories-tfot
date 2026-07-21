@@ -39,18 +39,18 @@ public abstract class InventoryMixin {
         });
     }
 
-    @Inject(method = "contains(Lnet/minecraft/world/item/ItemStack;)Z", at = @At("TAIL"))
+    @Inject(method = "contains(Lnet/minecraft/world/item/ItemStack;)Z", at = @At("TAIL"), cancellable = true)
     private void extendContainsCheck(ItemStack stack, CallbackInfoReturnable<Boolean> cir) {
         var capability = AccessoriesCapability.get(player);
 
         if (capability == null) return;
 
-        var bl = capability.isEquipped(stack1 -> stack1.isEmpty() && ItemStack.isSameItemSameTags(stack1, stack));
+        var bl = capability.isEquipped(stack1 -> !stack1.isEmpty() && ItemStack.isSameItemSameTags(stack1, stack));
 
         if (bl) cir.setReturnValue(true);
     }
 
-    @Inject(method = "contains(Lnet/minecraft/tags/TagKey;)Z", at = @At("TAIL"))
+    @Inject(method = "contains(Lnet/minecraft/tags/TagKey;)Z", at = @At("TAIL"), cancellable = true)
     private void extendContainsCheck(TagKey<Item> tag, CallbackInfoReturnable<Boolean> cir){
         var capability = AccessoriesCapability.get(player);
 
