@@ -1,4 +1,4 @@
-name: Build mod
+name: Build Forge mod
 
 on:
   push:
@@ -14,7 +14,7 @@ concurrency:
 
 jobs:
   build:
-    name: Build Accessories for Minecraft 1.20.1
+    name: Build Accessories Forge 1.20.1
     runs-on: ubuntu-latest
     timeout-minutes: 30
 
@@ -34,16 +34,15 @@ jobs:
       - name: Make Gradle wrapper executable
         run: chmod +x gradlew
 
-      - name: Build mod
-        run: ./gradlew :fabric:build :neoforge:build --no-daemon --stacktrace
+      - name: Build Forge mod
+        run: ./gradlew :neoforge:build --no-daemon --stacktrace
 
-      - name: Upload Fabric and Forge jars
+      - name: Upload Forge jar
         uses: actions/upload-artifact@v4
         with:
-          name: accessories-1.20.1-${{ github.sha }}
+          name: accessories-forge-1.20.1-${{ github.sha }}
           path: |
-            fabric/build/libs/*.jar
             neoforge/build/libs/*.jar
-            !fabric/build/libs/*-sources.jar
             !neoforge/build/libs/*-sources.jar
+            !neoforge/build/libs/*-dev-shadow.jar
           if-no-files-found: error
