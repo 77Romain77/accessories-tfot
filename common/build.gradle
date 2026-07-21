@@ -31,7 +31,7 @@ dependencies {
     modCompileOnly ("me.shedaniel:RoughlyEnoughItems-api:${rootProject.rei_version}")
     modCompileOnly ("me.shedaniel:RoughlyEnoughItems-default-plugin:${rootProject.rei_version}")
 
-    modCompileOnly ("dev.emi:emi-xplat-intermediary:${rootProject.emi_version}:api")
+    modCompileOnly ("maven.modrinth:emi:${rootProject.emi_version}+fabric")
 
     modCompileOnly("mezz.jei:jei-${rootProject.minecraft_version}-common-api:${rootProject.jei_version}")
 }
