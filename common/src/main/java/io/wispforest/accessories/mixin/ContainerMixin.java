@@ -14,8 +14,8 @@ import java.util.function.Predicate;
 @Mixin(Container.class)
 public interface ContainerMixin {
 
-    @Inject(method = "hasAnyMatching", at = @At("TAIL"))
-    private void extendHasAnyMatching(Predicate<ItemStack> predicate, CallbackInfoReturnable<Boolean> cir) {
+    @Inject(method = "hasAnyMatching", at = @At("TAIL"), cancellable = true)
+    default void extendHasAnyMatching(Predicate<ItemStack> predicate, CallbackInfoReturnable<Boolean> cir) {
         if (!(this instanceof Inventory inventory)) return;
 
         var capability = AccessoriesCapability.get(inventory.player);
