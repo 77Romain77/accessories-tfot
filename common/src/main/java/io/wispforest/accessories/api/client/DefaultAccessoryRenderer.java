@@ -12,8 +12,10 @@ import net.minecraft.client.model.EntityModel;
 import net.minecraft.client.model.HumanoidModel;
 import net.minecraft.client.renderer.MultiBufferSource;
 import net.minecraft.client.renderer.texture.OverlayTexture;
+import net.minecraft.world.effect.MobEffects;
 import net.minecraft.world.entity.HumanoidArm;
 import net.minecraft.world.entity.LivingEntity;
+import net.minecraft.world.entity.player.Player;
 import net.minecraft.world.item.ItemDisplayContext;
 import net.minecraft.world.item.ItemStack;
 import org.slf4j.Logger;
@@ -56,11 +58,14 @@ public class DefaultAccessoryRenderer implements AccessoryRenderer {
     public <M extends LivingEntity> void render(ItemStack stack, SlotReference reference, PoseStack matrices, EntityModel<M> model, MultiBufferSource multiBufferSource, int light, float limbSwing, float limbSwingAmount, float partialTicks, float ageInTicks, float netHeadYaw, float headPitch) {
         if (!(model instanceof HumanoidModel<? extends LivingEntity> humanoidModel)) return;
 
+        if (reference.entity().isInvisible()) return;
+
         var disabledTargetType = Accessories.getConfig().clientData.disabledDefaultRenders;
 
         for (var target : disabledTargetType) {
             if(reference.slotName().equals(target.slotType) && target.targetType.isValid(stack.getItem())) return;
         }
+        Player player;
 
         var displayContext = reference.slotName().equals("hat") ? ItemDisplayContext.HEAD : ItemDisplayContext.FIXED;
         Consumer<PoseStack> render = (poseStack) -> Minecraft.getInstance().getItemRenderer().renderStatic(stack, displayContext, light, OverlayTexture.NO_OVERLAY, poseStack, multiBufferSource, reference.entity().level(), 0);

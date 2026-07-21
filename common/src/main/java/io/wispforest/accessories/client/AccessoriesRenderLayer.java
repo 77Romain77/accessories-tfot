@@ -17,7 +17,6 @@ import net.minecraft.client.renderer.entity.LivingEntityRenderer;
 import net.minecraft.client.renderer.entity.RenderLayerParent;
 import net.minecraft.client.renderer.entity.layers.RenderLayer;
 import net.minecraft.util.Mth;
-import net.minecraft.world.effect.MobEffects;
 import net.minecraft.world.entity.LivingEntity;
 import org.apache.commons.lang3.mutable.MutableBoolean;
 import org.lwjgl.opengl.GL30;
@@ -63,12 +62,13 @@ public class AccessoriesRenderLayer<T extends LivingEntity, M extends EntityMode
             float netHeadYaw,
             float headPitch
     ) {
+        if (entity.isInvisible()) return;
+
         var highlightOptions = Accessories.getConfig().clientData.hoverOptions;
 
         var capability = AccessoriesCapability.get(entity);
 
         if (capability == null) return;
-        if (entity.hasEffect(MobEffects.INVISIBILITY)) return;
 
         var calendar = Calendar.getInstance();
 

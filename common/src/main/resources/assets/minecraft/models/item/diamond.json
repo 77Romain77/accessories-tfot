@@ -4,6 +4,9 @@
     "layer0": "minecraft:item/diamond"
   },
   "overrides": [
-    {"predicate": {"custom_model_data": 1},"model": "accessories:chapeau_du_jardinier"}
+    {"predicate": {"custom_model_data": 1},"model": "accessories:chapeau_du_jardinier"},
+    {"predicate": {"custom_model_data": 2},"model": "accessories:aventurier_pirate"},
+    {"predicate": {"custom_model_data": 3},"model": "accessories:test"},
+    {"predicate": {"custom_model_data": 4},"model": "accessories:scaphandre_du_grand_bleu"}
   ]
 }
