@@ -9,13 +9,14 @@ pluginManagement {
     }
 }
 
-include("common-mojmap")
-
 include("common")
-include("fabric")
 include("neoforge")
 
-include("cclayer")
-include("tclayer")
+if (!gradle.startParameter.projectProperties.containsKey("forgeBuildOnly")) {
+    include("common-mojmap")
+    include("fabric")
+    include("cclayer")
+    include("tclayer")
+}
 
 rootProject.name = "accessories"
