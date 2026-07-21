@@ -31,7 +31,7 @@ jobs:
         run: chmod +x gradlew
 
       - name: Build mod
-        run: ./gradlew build --no-daemon --stacktrace
+        run: ./gradlew :fabric:build :neoforge:build --no-daemon --stacktrace
 
       - name: Upload Fabric and Forge jars
         uses: actions/upload-artifact@v4
