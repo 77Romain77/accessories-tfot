@@ -70,7 +70,7 @@ dependencies {
     var type = rootProject.properties.get("item_viewer_type");
 
     modCompileOnly("me.shedaniel:RoughlyEnoughItems-api-forge:${rootProject.rei_version}")
-    modCompileOnly("dev.emi:emi-forge:${rootProject.emi_version}:api")
+    modCompileOnly("maven.modrinth:emi:${rootProject.emi_version}+forge")
     modCompileOnly("mezz.jei:jei-${rootProject.minecraft_version}-forge-api:${rootProject.jei_version}")
 
     if(type == "rei") {
